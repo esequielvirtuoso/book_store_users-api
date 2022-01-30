@@ -1,0 +1,26 @@
+version: '3.1'
+networks:
+  my-network-name:
+    name: ${NETWORK_NAME}
+services:
+  mysql_db:
+    image: mysql
+    container_name: ${MYSQL_NAME}
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: passwd
+    ports:
+      - 3305:3306
+    volumes:
+      - "./scripts/mysql/schemas.sql:/docker-entrypoint-initdb.d/1.sql"
+      - "./scripts/mysql/data.sql:/docker-entrypoint-initdb.d/2.sql"
+    networks:
+      - my-network-name
+
+  adminer:
+    image: adminer
+    container_name: ${MYSQL_ADMINER_NAME}
+    restart: always
+    ports:
+      - 8080:8080
