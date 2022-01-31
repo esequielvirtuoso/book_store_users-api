@@ -61,3 +61,6 @@ env-stop: ##@environment Remove mysql container and remove network.
 	MYSQL_ADMINER_NAME=${MYSQL_ADMINER_NAME} NETWORK_NAME=${NETWORK_NAME} docker-compose kill
 	MYSQL_ADMINER_NAME=${MYSQL_ADMINER_NAME} NETWORK_NAME=${NETWORK_NAME} docker-compose rm -vf
 	docker network rm $(NETWORK_NAME)
+
+run:
+	go run main.go
