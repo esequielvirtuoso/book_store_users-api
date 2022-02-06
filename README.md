@@ -83,11 +83,36 @@ make build
 
 ### Create release image, add tag and push
 
+Tip: Do not forget to login to docker hub account.
+```bash
+docker login -u "username" -p "access_token" docker.io
+```
+
 ```bash
 make image tag push
 ```
 
+### OR
+
+```bash
+make image
+```
+```bash
+make tag VERSION=1.0.0
+```
+```bash
+sudo make push VERSION=1.0.0
+```
+
+Note: Change the version to the desired version.
+
 ### Run registry image locally
+
+Tip: Before running it locally you need to prepare the environment with the following command.
+```bash
+make env
+```
+It creates the network and the database containers.
 
 ```bash
 make run-docker

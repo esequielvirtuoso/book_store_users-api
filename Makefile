@@ -6,18 +6,21 @@
 GITHUB_GROUP = esequielvirtuoso
 HUB_HOST     = hub.docker.com/repository/docker
 HUB_USER 	 = esequielvirtuoso
-HUB_GROUP    = go_apps
+HUB_REPO    = book_store_users-api
 
 BUILD         	= $(shell git rev-parse --short HEAD)
 DATE          	= $(shell date -uIseconds)
 VERSION  	  	= $(shell git describe --always --tags)
 NAME           	= $(shell basename $(CURDIR))
-IMAGE          	= $(HUB_HOST)/$(HUB_USER)/$(HUB_GROUP)/$(NAME):$(BUILD)
+IMAGE          	= $(HUB_USER)/$(HUB_REPO):$(BUILD)
 
 MYSQL_NAME = mysql_$(NAME)_$(BUILD)
 MYSQL_ADMINER_NAME = mysql_adminer_$(NAME)_$(BUILD)
 NETWORK_NAME  = network_$(NAME)_$(BUILD)
 MYSQL_URL = root:passwd@tcp(127.0.0.1:3305)/users_db?charset=utf8
+
+print_var:
+	echo $(DATE)
 
 git-config:
 	git config --replace-all core.hooksPath .githooks
@@ -98,10 +101,10 @@ image: check-env-VERSION ##@build Create release docker image.
 
 tag: check-env-VERSION ##@build Add docker tag.
 	docker tag $(IMAGE) \
-		$(HUB_HOST)/$(HUB_USER)/$(HUB_GROUP)/$(NAME):$(VERSION)
+		$(HUB_USER)/$(HUB_REPO):$(VERSION)
 
 push: check-env-VERSION ##@build Push docker image to registry.
-	docker push $(HUB_HOST)/$(HUB_USER)/$(HUB_GROUP)/$(NAME):$(VERSION)
+	docker push $(HUB_USER)/$(HUB_REPO):$(VERSION)
 
 release: check-env-TAG ##@build Create and push git tag.
 	git tag -a $(TAG) -m "Generated release "$(TAG)
@@ -115,12 +118,13 @@ run-local: ##@dev Run locally.
 	MYSQL_URL=root:passwd@$$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(MYSQL_NAME):3305)/users_db?charset=utf8 \
 	run
 
-run-docker: check-env-POSTGRES_URL ##@docker Run docker container.
+run-docker: check-env-MYSQL_URL ##@docker Run docker container.
 	docker run --rm \
 		--name $(NAME) \
+		--network $(NETWORK_NAME) \
 		-e LOGGER_LEVEL=debug \
-		-e MYSQL_URL=$(MYSQL_URL) \
-		-p 5001:8080 \
+		-e MYSQL_URL="root:passwd@tcp(mysql_db:3306)/users_db?charset=utf8" \
+		-p 5001:8081 \
 		$(IMAGE)
 
 remove-docker: ##@docker Remove docker container.

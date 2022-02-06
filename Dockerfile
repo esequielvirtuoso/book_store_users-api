@@ -41,9 +41,12 @@ COPY . .
 ARG VERSION
 ARG BUILD
 ARG DATE
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -installsuffix cgo -o /go/bin/book_store_users-api  -ldflags "-X main.version=${VERSION} -X main.build=${BUILD} -X main.date=${DATE}" ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -installsuffix cgo -o /go/bin/book_store_users-api  -ldflags "-X main.version=${VERSION} -X main.build=${BUILD} -X main.date=${DATE}" ./
 
 # --- Release ----
-FROM hub.docker.com/esequielvirtuoso/go_apps/book_store_users-api:stable AS image
+FROM gcr.io/distroless/base-debian10 AS image
+WORKDIR /
 COPY --from=build /go/bin/book_store_users-api /book_store_users-api
-ENTRYPOINT ["/users"]
+EXPOSE 8080
+USER nonroot:nonroot
+ENTRYPOINT ["/book_store_users-api"]
