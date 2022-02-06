@@ -1,6 +1,7 @@
 # include help.mk
 
-.PHONY: version clean lint install build image tag push release run run-local  remove-docker
+# tell Make the following targets are not files, but targets within Makefile
+.PHONY: version clean audit lint install build image tag push release run run-local remove-docker env env-stop print-var check-env check-used-ports
 .DEFAULT_GOAL := help
 
 GITHUB_GROUP = esequielvirtuoso
@@ -16,8 +17,16 @@ IMAGE          	= $(HUB_USER)/$(HUB_REPO):$(BUILD)
 
 MYSQL_NAME = mysql_$(NAME)_$(BUILD)
 MYSQL_ADMINER_NAME = mysql_adminer_$(NAME)_$(BUILD)
-NETWORK_NAME  = network_$(NAME)_$(BUILD)
+
+# NETWORK_NAME can be dinamically generated with the following env set
+# NETWORK_NAME  = network_$(NAME)_$(BUILD)
+# However, we have set it up with a static name to simplify the local
+# connection tests between the apps containers
+NETWORK_NAME = network_book_store
 MYSQL_URL = root:passwd@tcp(127.0.0.1:3305)/users_db?charset=utf8
+
+check-used-ports:
+	sudo netstat -tulpn | grep LISTEN
 
 print_var:
 	echo $(DATE)
@@ -114,8 +123,7 @@ run:
 	go run main.go
 
 run-local: ##@dev Run locally.
-	LOGGER_LEVEL=debug \
-	MYSQL_URL=root:passwd@$$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(MYSQL_NAME):3305)/users_db?charset=utf8 \
+	MYSQL_URL="$(MYSQL_NAME)" \
 	run
 
 run-docker: check-env-MYSQL_URL ##@docker Run docker container.
