@@ -1,3 +1,4 @@
+// Package users service holds the entire business logic to support the users domain.
 package users
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
 )
 
+// CreateUser is responsible for getting the input user and writing to the database.
 func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
@@ -17,8 +19,9 @@ func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	return &user, nil
 }
 
-func GetUser(userId int64) (*users.User, *errors.RestErr) {
-	result := &users.User{Id: userId}
+// GetUser is responsible for retriving the user from the database.
+func GetUser(userID int64) (*users.User, *errors.RestErr) {
+	result := &users.User{ID: userID}
 	if err := result.Get(); err != nil {
 		return nil, err
 	}

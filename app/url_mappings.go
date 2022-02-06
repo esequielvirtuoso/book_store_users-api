@@ -1,3 +1,4 @@
+// Package app map the HTTP routes.
 package app
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/esequielvirtuoso/book_store_users-api/controllers/users"
 )
 
+// mapURLs map the HTTP routes.
 func mapURLs() {
 	// Ping
 	// This route allows us to test if the service is up.

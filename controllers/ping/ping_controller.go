@@ -1,3 +1,4 @@
+// Package ping allows the cloud services and clients to verify if the application is running.
 package ping
 
 import (

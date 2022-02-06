@@ -1,4 +1,4 @@
-// Provide the functionalities or the entry points to interact with the users API.
+// Package users provide the functionalities or the entry points to interact with the users API.
 // Take the request, validate if we have all the parameters that we need to
 // handle this request and send this handling to the service where we have
 // the required business logic.
@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateUser handles the creation of users requests.
 func CreateUser(c *gin.Context) {
 	var user users.User
 
@@ -32,15 +33,16 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 
+// GetUser handles the get users requests.
 func GetUser(c *gin.Context) {
-	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	userID, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if userErr != nil {
 		err := errors.NewBadRequestError("user id should be a number")
 		c.JSON(err.Status, err)
 		return
 	}
 
-	user, getErr := users_service.GetUser(userId)
+	user, getErr := users_service.GetUser(userID)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return

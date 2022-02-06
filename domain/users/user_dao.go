@@ -1,41 +1,67 @@
-// DAO
-// Data Access Object - The entire logic to persist or read user from/to a given database.
-// Access Layer to the database.
+// Package users Data Access Object (DAO) holds the logic to persist or retrieve user to/from a given database.
+// DAO is the Access Layer to the database.
 package users
 
 import (
 	"fmt"
 
+	usersDb "github.com/esequielvirtuoso/book_store_users-api/infrastructure/datasources/mysql/users_db"
+	dateUtils "github.com/esequielvirtuoso/book_store_users-api/utils/date_utils"
 	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
+	mysqlUtils "github.com/esequielvirtuoso/book_store_users-api/utils/mysql_utils"
 )
 
-var (
-	usersDB = make(map[int64]*User)
+const (
+	queryInsertUser = "INSERT INTO users(first_name, last_name, email, date_created) VALUES(?,?,?,?);"
+	queryGetUser    = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id=?;"
 )
 
+// Get is responsible to retrieve an user from database finding by its id.
 func (user *User) Get() *errors.RestErr {
-	result := usersDB[user.Id]
-	if result == nil {
-		return errors.NewNotFoundError(fmt.Sprintf("user %d not found", user.Id))
+	stmt, err := usersDb.Client.Prepare(queryGetUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
 	}
 
-	user.Id = result.Id
-	user.FirstName = result.FirstName
-	user.LastName = result.LastName
-	user.Email = result.Email
-	user.DateCreated = result.DateCreated
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			fmt.Println("error while getting user")
+		}
+	}()
+
+	result := stmt.QueryRow(user.ID)
+	if getErr := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated); getErr != nil {
+		return mysqlUtils.ParseError(getErr)
+	}
+
 	return nil
 }
 
+// Save is responsible to create a user record within the database.
 func (user *User) Save() *errors.RestErr {
-	current := usersDB[user.Id]
-	if current != nil {
-		if current.Email == user.Email {
-			return errors.NewBadRequestError(fmt.Sprintf("email %s already registered", user.Email))
-		}
-		return errors.NewBadRequestError(fmt.Sprintf("user %d already exists", user.Id))
+	stmt, err := usersDb.Client.Prepare(queryInsertUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
 	}
 
-	usersDB[user.Id] = user
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			fmt.Println("error while saving user")
+		}
+	}()
+
+	user.DateCreated = dateUtils.GetNowString()
+	insertResult, saveErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
+	if saveErr != nil {
+		return mysqlUtils.ParseError(saveErr)
+	}
+
+	userID, err := insertResult.LastInsertId()
+	if err != nil {
+		return mysqlUtils.ParseError(err)
+	}
+	user.ID = userID
 	return nil
 }
