@@ -14,8 +14,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateUser handles the creation of users requests.
-func CreateUser(c *gin.Context) {
+// getUserId isolate the get user id action to be reused
+func getUserId(inputUserId string) (int64, *errors.RestErr) {
+	userID, userErr := strconv.ParseInt(inputUserId, 10, 64)
+	if userErr != nil {
+		return 0, errors.NewBadRequestError("user id should be a number")
+
+	}
+	return userID, nil
+}
+
+// Create handles the creation of users requests.
+func Create(c *gin.Context) {
 	var user users.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -30,15 +40,14 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, result)
+	c.JSON(http.StatusCreated, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
-// GetUser handles the get users requests.
-func GetUser(c *gin.Context) {
-	userID, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if userErr != nil {
-		err := errors.NewBadRequestError("user id should be a number")
-		c.JSON(err.Status, err)
+// Get handles the get users requests.
+func Get(c *gin.Context) {
+	userID, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
 		return
 	}
 
@@ -48,5 +57,63 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+// Update handles the update of users requests.
+func Update(c *gin.Context) {
+	userID, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	var user users.User
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := errors.NewBadRequestError("invalid body request")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+	user.ID = userID
+
+	isPartialUpdate := c.Request.Method == http.MethodPatch
+
+	result, errUpdate := users_service.UpdateUser(isPartialUpdate, user)
+
+	if errUpdate != nil {
+		c.JSON(errUpdate.Status, errUpdate)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+// Delete handles the update of users requests.
+func Delete(c *gin.Context) {
+	userID, idErr := getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	if errDelete := users_service.DeleteUser(userID); errDelete != nil {
+		c.JSON(errDelete.Status, errDelete)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+
+}
+
+// Search handles find users by its characteristics
+func Search(c *gin.Context) {
+	status := c.Query("status")
+
+	users, err := users_service.Search(status)
+	if err != nil {
+		c.JSON(err.Status, err)
+	}
+
+	c.JSON(http.StatusOK, users.Marshall(c.GetHeader("X-Public") == "true"))
 }

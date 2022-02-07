@@ -12,8 +12,11 @@ import (
 )
 
 const (
-	queryInsertUser = "INSERT INTO users(first_name, last_name, email, date_created) VALUES(?,?,?,?);"
-	queryGetUser    = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id=?;"
+	queryInsertUser       = "INSERT INTO users(internal_code, first_name, last_name, email, status, password, date_created, updated_at) VALUES(?,?,?,?,?,?,?,?);"
+	queryGetUser          = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE id=?;"
+	queryUpdateUser       = "UPDATE users SET internal_code=?, first_name=?, last_name=?, email=?, status=?, password=?, updated_at=? WHERE id=?;"
+	queryDeleteUser       = "DELETE FROM users WHERE id=?;"
+	queryFindUserByStatus = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE status=?;"
 )
 
 // Get is responsible to retrieve an user from database finding by its id.
@@ -31,7 +34,7 @@ func (user *User) Get() *errors.RestErr {
 	}()
 
 	result := stmt.QueryRow(user.ID)
-	if getErr := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated); getErr != nil {
+	if getErr := result.Scan(&user.ID, &user.InternalCode, &user.FirstName, &user.LastName, &user.Email, &user.Status, &user.DateCreated, &user.UpdatedAt); getErr != nil {
 		return mysqlUtils.ParseError(getErr)
 	}
 
@@ -52,8 +55,7 @@ func (user *User) Save() *errors.RestErr {
 		}
 	}()
 
-	user.DateCreated = dateUtils.GetNowString()
-	insertResult, saveErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
+	insertResult, saveErr := stmt.Exec(user.InternalCode, user.FirstName, user.LastName, user.Email, user.Status, user.Password, user.DateCreated, user.UpdatedAt)
 	if saveErr != nil {
 		return mysqlUtils.ParseError(saveErr)
 	}
@@ -64,4 +66,90 @@ func (user *User) Save() *errors.RestErr {
 	}
 	user.ID = userID
 	return nil
+}
+
+// Update is responsible to update a user record within the database.
+func (user *User) Update() *errors.RestErr {
+	stmt, err := usersDb.Client.Prepare(queryUpdateUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
+	}
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			fmt.Println("error while updating user")
+		}
+	}()
+
+	_, err = stmt.Exec(user.InternalCode, user.FirstName, user.LastName, user.Email, user.Status, user.Password, user.UpdatedAt, user.ID)
+	if err != nil {
+		return mysqlUtils.ParseError(err)
+	}
+	return nil
+}
+
+// Delete is responsible to delete a user record from the database.
+func (user *User) Delete() *errors.RestErr {
+	stmt, err := usersDb.Client.Prepare(queryDeleteUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
+	}
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			fmt.Println("error while deleting user")
+		}
+	}()
+
+	user.UpdatedAt = dateUtils.GetNowString()
+
+	if _, err = stmt.Exec(user.ID); err != nil {
+		return mysqlUtils.ParseError(err)
+	}
+	return nil
+}
+
+// FindByStatus is responsible to find users by status.
+func (user *User) FindByStatus(status string) ([]User, *errors.RestErr) {
+	stmt, err := usersDb.Client.Prepare(queryFindUserByStatus)
+	if err != nil {
+		return nil, errors.NewInternalServerError(err.Error())
+	}
+
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			fmt.Println("error while finding users by status")
+		}
+	}()
+
+	rows, errFindById := stmt.Query(status)
+	// avoid keeping open connections to the database
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			fmt.Println("error while finding users by status")
+		}
+	}()
+
+	if errFindById != nil {
+		return nil, errors.NewInternalServerError(err.Error())
+	}
+
+	results := make([]User, 0)
+
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.ID, &user.InternalCode, &user.FirstName, &user.LastName, &user.Email, &user.Status, &user.DateCreated, &user.UpdatedAt); err != nil {
+			return nil, mysqlUtils.ParseError(err)
+		}
+		results = append(results, user)
+	}
+
+	if len(results) == 0 {
+		return nil, errors.NewNotFoundError(fmt.Sprintf("no users matching status %s", status))
+	}
+
+	return results, nil
+
 }
