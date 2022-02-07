@@ -20,7 +20,7 @@ func GetNowString() string {
 	return GetNow().Format(apiDateLayout)
 }
 
-// GetNowString returns the current date and time in UTC with the apiDbLayout format.
+// GetNowDbFormat returns the current date and time in UTC with the apiDbLayout format.
 func GetNowDbFormat() string {
 	return GetNow().Format(apiDbLayout)
 }

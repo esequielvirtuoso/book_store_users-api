@@ -79,7 +79,7 @@ test: ##@check Run tests and coverage.
 	docker build --progress=plain \
 		--network $(NETWORK_NAME) \
 		--tag $(IMAGE) \
-		--build-arg MYSQL_URL=$(MYSQL_URL) \
+		--build-arg MYSQL_URL="$(MYSQL_URL)" \
 		--target=test \
 		--file=Dockerfile .
 

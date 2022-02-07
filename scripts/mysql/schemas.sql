@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users_db.users (
     last_name VARCHAR(45) NULL,
     email VARCHAR(45) NOT NULL,
     status VARCHAR(45) NOT NULL,
-    password VARCHAR(36) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     date_created DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY(id),

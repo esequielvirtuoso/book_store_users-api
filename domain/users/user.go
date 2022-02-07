@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
+	"github.com/esequielvirtuoso/book_store_users-api/utils/regex"
 )
 
 const (
+	// StatusActive defines the default user status
 	StatusActive = "active"
 )
 
@@ -28,12 +30,42 @@ type User struct {
 // Users is a slice of User
 type Users []User
 
+// validatePassword validates if password is compliant to the minimal security rules.
+// It returns False and a message when password is not valid.
+func validatePassword(password string) (bool, string) {
+	if len(password) < 8 {
+		return false, "password must have at least 8 characters"
+	}
+
+	patterns := []string{"[A-Z]:password must have at least one upper case character:t",
+		"[a-z]:password must have at least one lower case character:t",
+		"[0-9]:password must have at least one number:t",
+		"[^A-Za-z0-9]:password must have at least one special character:t",
+		"[\t\n\f\r ]:password cannot have white spaces:f"}
+
+	validations := regex.DefineRegexPatternsAndMessages(patterns)
+
+	for _, validation := range validations {
+		if validation.Found {
+			found, _ := regex.AssertRegexPattern(password, validation.Regex)
+			if !found {
+				return false, validation.Message
+			}
+		} else {
+			found, _ := regex.AssertRegexPattern(password, validation.Regex)
+			if found {
+				return false, validation.Message
+			}
+		}
+	}
+	return true, ""
+}
+
 // TrimSpaces is responsible to remove blank spaces from the beginning and the end of user fields values
 func (user *User) TrimSpaces() {
 	user.FirstName = strings.TrimSpace(user.FirstName)
 	user.LastName = strings.TrimSpace(user.LastName)
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
-	user.Password = strings.TrimSpace(user.Password)
 }
 
 // Validate is responsible to verify if the values assigned to the user's characteristics are allowed
@@ -56,8 +88,9 @@ func (user *User) Validate() *errors.RestErr {
 		return errors.NewBadRequestError("invalid last name")
 	}
 
-	if user.Password == "" {
-		return errors.NewBadRequestError("invalid password")
+	passIsValid, message := validatePassword(user.Password)
+	if !passIsValid {
+		return errors.NewBadRequestError(message)
 	}
 
 	return nil

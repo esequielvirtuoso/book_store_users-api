@@ -1,7 +1,11 @@
 // Package users marshall holds the logic to build up the returns users objects to avoid returning sensitive information to public HTTP requests.
 package users
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/esequielvirtuoso/book_store_users-api/utils/logger"
+)
 
 // PublicUser struct define the characteristics of a user that we can return to public HTTP requests
 type PublicUser struct {
@@ -45,8 +49,14 @@ func (user *User) Marshall(isPublic bool) interface{} {
 			Status:       user.Status,
 		}
 	}
-	userJson, _ := json.Marshal(user)
+	userJSON, errMarshal := json.Marshal(user)
+	if errMarshal != nil {
+		logger.Error("error while marshalling user", errMarshal)
+	}
 	var privateUser PrivateUser
-	json.Unmarshal(userJson, &privateUser)
+	if errUnmarshal := json.Unmarshal(userJSON, &privateUser); errUnmarshal != nil {
+		logger.Error("error while unmarshalling user", errUnmarshal)
+	}
+
 	return privateUser
 }
