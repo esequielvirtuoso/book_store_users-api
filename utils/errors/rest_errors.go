@@ -1,13 +1,21 @@
 // Package errors must be used while handling errors in REST applications.
 package errors
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 // RestErr is a standard struct to be used while handling errors in REST applications.
 type RestErr struct {
 	Message string `json:"message"`
 	Status  int    `json:"status"`
 	Error   string `json:"error"`
+}
+
+// NewError returns a new error with an input message
+func NewError(msg string) error {
+	return errors.New(msg)
 }
 
 /* NewBadRequestError returns a standardized struct with the correct status,

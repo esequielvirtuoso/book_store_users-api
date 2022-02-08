@@ -2,6 +2,7 @@
 package app
 
 import (
+	"github.com/esequielvirtuoso/book_store_users-api/utils/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +14,8 @@ var (
 // StartApplication attempts to map the API routes
 func StartApplication() {
 	mapURLs()
+
+	logger.Info("about to start the users application")
 	if err := router.Run(":8081"); err != nil {
 		panic(err)
 	}

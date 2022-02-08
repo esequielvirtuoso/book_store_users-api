@@ -7,6 +7,7 @@ import "time"
 
 const (
 	apiDateLayout = "2006-01-02T15:04:05Z"
+	apiDbLayout   = "2006-01-02 15:04:05"
 )
 
 // GetNow returns the current date and time in Cordinated Universal Time (UTC).
@@ -17,4 +18,9 @@ func GetNow() time.Time {
 // GetNowString returns the current date and time in UTC with the apiDateLayout format.
 func GetNowString() string {
 	return GetNow().Format(apiDateLayout)
+}
+
+// GetNowDbFormat returns the current date and time in UTC with the apiDbLayout format.
+func GetNowDbFormat() string {
+	return GetNow().Format(apiDbLayout)
 }
