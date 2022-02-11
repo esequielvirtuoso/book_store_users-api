@@ -36,4 +36,8 @@ func mapURLs() {
 	// Search Users
 	// curl -X GET localhost:5001/internal/users/search
 	router.GET("/internal/users/search", users.Search)
+
+	// Login
+	// curl -X POST localhost:5001/users/login
+	router.POST("/users/login", users.Login)
 }

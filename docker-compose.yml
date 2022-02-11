@@ -2,6 +2,7 @@ version: '3.1'
 networks:
   my-network-name:
     name: ${NETWORK_NAME}
+    driver: bridge
 services:
   mysql_db:
     image: mysql

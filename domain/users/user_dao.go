@@ -4,6 +4,7 @@ package users
 
 import (
 	"fmt"
+	"strings"
 
 	usersDb "github.com/esequielvirtuoso/book_store_users-api/infrastructure/datasources/mysql/users_db"
 	dateUtils "github.com/esequielvirtuoso/book_store_users-api/utils/date_utils"
@@ -13,11 +14,12 @@ import (
 )
 
 const (
-	queryInsertUser       = "INSERT INTO users(internal_code, first_name, last_name, email, status, password, date_created, updated_at) VALUES(?,?,?,?,?,?,?,?);"
-	queryGetUser          = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE id=?;"
-	queryUpdateUser       = "UPDATE users SET internal_code=?, first_name=?, last_name=?, email=?, status=?, password=?, updated_at=? WHERE id=?;"
-	queryDeleteUser       = "DELETE FROM users WHERE id=?;"
-	queryFindUserByStatus = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE status=?;"
+	queryInsertUser             = "INSERT INTO users(internal_code, first_name, last_name, email, status, password, date_created, updated_at) VALUES(?,?,?,?,?,?,?,?);"
+	queryGetUser                = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE id=?;"
+	queryUpdateUser             = "UPDATE users SET internal_code=?, first_name=?, last_name=?, email=?, status=?, password=?, updated_at=? WHERE id=?;"
+	queryDeleteUser             = "DELETE FROM users WHERE id=?;"
+	queryFindUserByStatus       = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE status=?;"
+	queryFindByEmailAndPassword = "SELECT id, internal_code, first_name, last_name, email, status, date_created, updated_at FROM users WHERE email=? AND password=? AND status=?;"
 )
 
 // Get is responsible to retrieve an user from database finding by its id.
@@ -165,4 +167,31 @@ func (user *User) FindByStatus(status string) ([]User, *errors.RestErr) {
 
 	return results, nil
 
+}
+
+// FindByEmailAndPassword is responsible to retrieve an user from database finding by its email and password.
+func (user *User) FindByEmailAndPassword() *errors.RestErr {
+	stmt, err := usersDb.Client.Prepare(queryFindByEmailAndPassword)
+	if err != nil {
+		logger.Error("error when trying to prepare get user by email and password statement", err)
+		return errors.NewInternalServerError("database error")
+	}
+
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			logger.Error("error while defering getting user by email and password statement", err)
+		}
+	}()
+
+	result := stmt.QueryRow(user.Email, user.Password, StatusActive)
+	if getErr := result.Scan(&user.ID, &user.InternalCode, &user.FirstName, &user.LastName, &user.Email, &user.Status, &user.DateCreated, &user.UpdatedAt); getErr != nil {
+		if strings.Contains(getErr.Error(), mysqlUtils.ErrorNoRows) {
+			return errors.NewNotFoundError("invalid user credentials")
+		}
+		logger.Error("error when trying to get user by email and password", getErr)
+		return errors.NewInternalServerError("database error")
+	}
+
+	return nil
 }
