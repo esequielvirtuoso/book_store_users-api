@@ -10,6 +10,7 @@ import (
 
 	"github.com/esequielvirtuoso/book_store_users-api/domain/users"
 	"github.com/esequielvirtuoso/book_store_users-api/services"
+
 	restErrors "github.com/esequielvirtuoso/go_utils_lib/rest_errors"
 	"github.com/esequielvirtuoso/oauth_go_lib/oauth"
 	"github.com/gin-gonic/gin"

@@ -27,7 +27,7 @@ func (user *User) Get() restErrors.RestErr {
 	stmt, err := usersDb.Client.Prepare(queryGetUser)
 	if err != nil {
 		logger.Error("error when trying to prepare get user statement", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 
 	defer func() {
@@ -40,7 +40,7 @@ func (user *User) Get() restErrors.RestErr {
 	result := stmt.QueryRow(user.ID)
 	if getErr := result.Scan(&user.ID, &user.InternalCode, &user.FirstName, &user.LastName, &user.Email, &user.Status, &user.DateCreated, &user.UpdatedAt); getErr != nil {
 		logger.Error("error when trying to get user by id", getErr)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", getErr)
 	}
 
 	return nil
@@ -51,7 +51,7 @@ func (user *User) Save() restErrors.RestErr {
 	stmt, err := usersDb.Client.Prepare(queryInsertUser)
 	if err != nil {
 		logger.Error("error when trying to prepare save user statement", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 
 	defer func() {
@@ -64,13 +64,13 @@ func (user *User) Save() restErrors.RestErr {
 	insertResult, saveErr := stmt.Exec(user.InternalCode, user.FirstName, user.LastName, user.Email, user.Status, user.Password, user.DateCreated, user.UpdatedAt)
 	if saveErr != nil {
 		logger.Error("error when trying to save user", saveErr)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", saveErr)
 	}
 
 	userID, err := insertResult.LastInsertId()
 	if err != nil {
 		logger.Error("error when trying to get last insert id after creating a new user", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 	user.ID = userID
 	return nil
@@ -81,7 +81,7 @@ func (user *User) Update() restErrors.RestErr {
 	stmt, err := usersDb.Client.Prepare(queryUpdateUser)
 	if err != nil {
 		logger.Error("error when trying to prepare update user statement", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 	defer func() {
 		err = stmt.Close()
@@ -102,7 +102,7 @@ func (user *User) Delete() restErrors.RestErr {
 	stmt, err := usersDb.Client.Prepare(queryDeleteUser)
 	if err != nil {
 		logger.Error("error when trying to prepare delete user statement", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 	defer func() {
 		err = stmt.Close()
@@ -115,7 +115,7 @@ func (user *User) Delete() restErrors.RestErr {
 
 	if _, err = stmt.Exec(user.ID); err != nil {
 		logger.Error("error when trying to delete user", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 	return nil
 }
@@ -125,7 +125,7 @@ func (user *User) FindByStatus(status string) ([]User, restErrors.RestErr) {
 	stmt, err := usersDb.Client.Prepare(queryFindUserByStatus)
 	if err != nil {
 		logger.Error("error when trying to prepare find user by status statement", err)
-		return nil, restErrors.NewInternalServerError("database error")
+		return nil, restErrors.NewInternalServerError("database error", err)
 	}
 
 	defer func() {
@@ -146,7 +146,7 @@ func (user *User) FindByStatus(status string) ([]User, restErrors.RestErr) {
 
 	if errFindByStatus != nil {
 		logger.Error("error when trying to find user by status", errFindByStatus)
-		return nil, restErrors.NewInternalServerError("database error")
+		return nil, restErrors.NewInternalServerError("database error", errFindByStatus)
 	}
 
 	results := make([]User, 0)
@@ -155,7 +155,7 @@ func (user *User) FindByStatus(status string) ([]User, restErrors.RestErr) {
 		var user User
 		if err := rows.Scan(&user.ID, &user.InternalCode, &user.FirstName, &user.LastName, &user.Email, &user.Status, &user.DateCreated, &user.UpdatedAt); err != nil {
 			logger.Error("error when trying to scan users returned rows", err)
-			return nil, restErrors.NewInternalServerError("database error")
+			return nil, restErrors.NewInternalServerError("database error", err)
 		}
 		results = append(results, user)
 	}
@@ -174,7 +174,7 @@ func (user *User) FindByEmailAndPassword() restErrors.RestErr {
 	stmt, err := usersDb.Client.Prepare(queryFindByEmailAndPassword)
 	if err != nil {
 		logger.Error("error when trying to prepare get user by email and password statement", err)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", err)
 	}
 
 	defer func() {
@@ -190,7 +190,7 @@ func (user *User) FindByEmailAndPassword() restErrors.RestErr {
 			return restErrors.NewNotFoundError("invalid user credentials")
 		}
 		logger.Error("error when trying to get user by email and password", getErr)
-		return restErrors.NewInternalServerError("database error")
+		return restErrors.NewInternalServerError("database error", getErr)
 	}
 
 	return nil
