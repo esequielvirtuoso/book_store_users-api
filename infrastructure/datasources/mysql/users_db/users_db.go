@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/esequielvirtuoso/book_store_users-api/utils/env"
+	env "github.com/esequielvirtuoso/go_utils_lib/envs"
 	// mysql import
 	_ "github.com/go-sql-driver/mysql"
 )

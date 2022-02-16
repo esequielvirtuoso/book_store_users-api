@@ -2,7 +2,7 @@
 package app
 
 import (
-	"github.com/esequielvirtuoso/book_store_users-api/utils/logger"
+	"github.com/esequielvirtuoso/go_utils_lib/logger"
 	"github.com/gin-gonic/gin"
 )
 

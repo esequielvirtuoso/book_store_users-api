@@ -10,7 +10,8 @@ import (
 
 	"github.com/esequielvirtuoso/book_store_users-api/domain/users"
 	"github.com/esequielvirtuoso/book_store_users-api/services"
-	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
+	restErrors "github.com/esequielvirtuoso/go_utils_lib/rest_errors"
+	"github.com/esequielvirtuoso/oauth_go_lib/oauth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,10 +20,10 @@ const (
 )
 
 // getUserID isolate the get user id action to be reused
-func getUserID(inputUserID string) (int64, *errors.RestErr) {
+func getUserID(inputUserID string) (int64, restErrors.RestErr) {
 	userID, userErr := strconv.ParseInt(inputUserID, 10, 64)
 	if userErr != nil {
-		return 0, errors.NewBadRequestError("user id should be a number")
+		return 0, restErrors.NewBadRequestError("user id should be a number")
 
 	}
 	return userID, nil
@@ -33,14 +34,14 @@ func Create(c *gin.Context) {
 	var user users.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		restErr := errors.NewBadRequestError("invalid body request")
-		c.JSON(restErr.Status, restErr)
+		restErr := restErrors.NewBadRequestError("invalid body request")
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 
 	result, saveErr := services.UsersService.CreateUser(user)
 	if saveErr != nil {
-		c.JSON(saveErr.Status, saveErr)
+		c.JSON(saveErr.Status(), saveErr)
 		return
 	}
 
@@ -49,34 +50,50 @@ func Create(c *gin.Context) {
 
 // Get handles the get users requests.
 func Get(c *gin.Context) {
+	if err := oauth.AuthenticateRequest(c.Request); err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+
+	// if callerID := oauth.GetCallerId(c.Request); callerID == 0 {
+	// 	err := restErrors.NewUnauthorized("resource not available")
+	// 	c.JSON(err.Status(), err)
+	// 	return
+	// }
+
 	userID, idErr := getUserID(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
 	user, getErr := services.UsersService.GetUser(userID)
 	if getErr != nil {
-		c.JSON(getErr.Status, getErr)
+		c.JSON(getErr.Status(), getErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == isPublic))
+	if oauth.GetCallerId(c.Request) == userID {
+		c.JSON(http.StatusOK, user.Marshall(false))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Marshall(oauth.IsPublic(c.Request)))
 }
 
 // Update handles the update of users requests.
 func Update(c *gin.Context) {
 	userID, idErr := getUserID(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
 	var user users.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		restErr := errors.NewBadRequestError("invalid body request")
-		c.JSON(restErr.Status, restErr)
+		restErr := restErrors.NewBadRequestError("invalid body request")
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 	user.ID = userID
@@ -86,7 +103,7 @@ func Update(c *gin.Context) {
 	result, errUpdate := services.UsersService.UpdateUser(isPartialUpdate, user)
 
 	if errUpdate != nil {
-		c.JSON(errUpdate.Status, errUpdate)
+		c.JSON(errUpdate.Status(), errUpdate)
 		return
 	}
 
@@ -97,12 +114,12 @@ func Update(c *gin.Context) {
 func Delete(c *gin.Context) {
 	userID, idErr := getUserID(c.Param("user_id"))
 	if idErr != nil {
-		c.JSON(idErr.Status, idErr)
+		c.JSON(idErr.Status(), idErr)
 		return
 	}
 
 	if errDelete := services.UsersService.DeleteUser(userID); errDelete != nil {
-		c.JSON(errDelete.Status, errDelete)
+		c.JSON(errDelete.Status(), errDelete)
 		return
 	}
 
@@ -116,7 +133,7 @@ func Search(c *gin.Context) {
 
 	users, err := services.UsersService.SearchUser(status)
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 	}
 
 	c.JSON(http.StatusOK, users.Marshall(c.GetHeader("X-Public") == isPublic))
@@ -125,13 +142,13 @@ func Search(c *gin.Context) {
 func Login(c *gin.Context) {
 	var request users.LoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		restErr := errors.NewBadRequestError("invalid body request")
-		c.JSON(restErr.Status, restErr)
+		restErr := restErrors.NewBadRequestError("invalid body request")
+		c.JSON(restErr.Status(), restErr)
 		return
 	}
 	user, err := services.UsersService.LoginUser(&request)
 	if err != nil {
-		c.JSON(err.Status, err)
+		c.JSON(err.Status(), err)
 		return
 	}
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == isPublic))

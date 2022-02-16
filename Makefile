@@ -1,7 +1,7 @@
 # include help.mk
 
 # tell Make the following targets are not files, but targets within Makefile
-.PHONY: version clean audit lint install build image tag push release run run-local remove-docker env env-stop print-var check-env check-used-ports
+.PHONY: version clean audit lint install build image tag push release run run-local remove-docker env env-stop print-var check-env check-used-ports set-env
 .DEFAULT_GOAL := help
 
 GITHUB_GROUP = esequielvirtuoso
@@ -24,6 +24,9 @@ MYSQL_ADMINER_NAME = mysql_adminer_$(NAME)_$(BUILD)
 # connection tests between the apps containers
 NETWORK_NAME = network_book_store
 MYSQL_URL = root:passwd@tcp(127.0.0.1:3305)/users_db?charset=utf8
+
+set-env:
+	@export MYSQL_URL="root:passwd@tcp(127.0.0.1:3305)/users_db?charset=utf8"
 
 check-used-ports:
 	sudo netstat -tulpn | grep LISTEN
