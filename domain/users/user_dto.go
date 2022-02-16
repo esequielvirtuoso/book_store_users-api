@@ -5,8 +5,8 @@ package users
 import (
 	"strings"
 
-	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
-	"github.com/esequielvirtuoso/book_store_users-api/utils/regex"
+	regexUtils "github.com/esequielvirtuoso/go_utils_lib/regex"
+	restErrors "github.com/esequielvirtuoso/go_utils_lib/rest_errors"
 )
 
 const (
@@ -43,16 +43,16 @@ func validatePassword(password string) (bool, string) {
 		"[^A-Za-z0-9]:password must have at least one special character:t",
 		"[\t\n\f\r ]:password cannot have white spaces:f"}
 
-	validations := regex.DefineRegexPatternsAndMessages(patterns)
+	validations := regexUtils.DefineRegexPatternsAndMessages(patterns)
 
 	for _, validation := range validations {
 		if validation.Found {
-			found, _ := regex.AssertRegexPattern(password, validation.Regex)
+			found, _ := regexUtils.AssertRegexPattern(password, validation.Regex)
 			if !found {
 				return false, validation.Message
 			}
 		} else {
-			found, _ := regex.AssertRegexPattern(password, validation.Regex)
+			found, _ := regexUtils.AssertRegexPattern(password, validation.Regex)
 			if found {
 				return false, validation.Message
 			}
@@ -69,28 +69,28 @@ func (user *User) TrimSpaces() {
 }
 
 // Validate is responsible to verify if the values assigned to the user's characteristics are allowed
-func (user *User) Validate() *errors.RestErr {
+func (user *User) Validate() restErrors.RestErr {
 	user.TrimSpaces()
 
 	if user.InternalCode <= 0 {
-		return errors.NewBadRequestError("invalid internal code")
+		return restErrors.NewBadRequestError("invalid internal code")
 	}
 
 	if user.Email == "" {
-		return errors.NewBadRequestError("invalid email addess")
+		return restErrors.NewBadRequestError("invalid email addess")
 	}
 
 	if user.FirstName == "" {
-		return errors.NewBadRequestError("invalid first name")
+		return restErrors.NewBadRequestError("invalid first name")
 	}
 
 	if user.LastName == "" {
-		return errors.NewBadRequestError("invalid last name")
+		return restErrors.NewBadRequestError("invalid last name")
 	}
 
 	passIsValid, message := validatePassword(user.Password)
 	if !passIsValid {
-		return errors.NewBadRequestError(message)
+		return restErrors.NewBadRequestError(message)
 	}
 
 	return nil

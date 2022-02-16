@@ -3,9 +3,9 @@ package services
 
 import (
 	"github.com/esequielvirtuoso/book_store_users-api/domain/users"
-	cryptoUtils "github.com/esequielvirtuoso/book_store_users-api/utils/crypto_utils"
-	dateUtils "github.com/esequielvirtuoso/book_store_users-api/utils/date_utils"
-	"github.com/esequielvirtuoso/book_store_users-api/utils/errors"
+	cryptoUtils "github.com/esequielvirtuoso/go_utils_lib/crypto"
+	dateUtils "github.com/esequielvirtuoso/go_utils_lib/date"
+	restErrors "github.com/esequielvirtuoso/go_utils_lib/rest_errors"
 )
 
 var (
@@ -17,16 +17,16 @@ type usersService struct {
 }
 
 type usersServiceInterface interface {
-	CreateUser(users.User) (*users.User, *errors.RestErr)
-	GetUser(int64) (*users.User, *errors.RestErr)
-	UpdateUser(bool, users.User) (*users.User, *errors.RestErr)
-	DeleteUser(int64) *errors.RestErr
-	SearchUser(string) (users.Users, *errors.RestErr)
-	LoginUser(*users.LoginRequest) (*users.User, *errors.RestErr)
+	CreateUser(users.User) (*users.User, restErrors.RestErr)
+	GetUser(int64) (*users.User, restErrors.RestErr)
+	UpdateUser(bool, users.User) (*users.User, restErrors.RestErr)
+	DeleteUser(int64) restErrors.RestErr
+	SearchUser(string) (users.Users, restErrors.RestErr)
+	LoginUser(*users.LoginRequest) (*users.User, restErrors.RestErr)
 }
 
 // CreateUser is responsible for getting the input user and writing to the database.
-func (s *usersService) CreateUser(user users.User) (*users.User, *errors.RestErr) {
+func (s *usersService) CreateUser(user users.User) (*users.User, restErrors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (s *usersService) CreateUser(user users.User) (*users.User, *errors.RestErr
 }
 
 // GetUser is responsible for retriving the user from the database.
-func (s *usersService) GetUser(userID int64) (*users.User, *errors.RestErr) {
+func (s *usersService) GetUser(userID int64) (*users.User, restErrors.RestErr) {
 	result := &users.User{ID: userID}
 	if err := result.Get(); err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (s *usersService) GetUser(userID int64) (*users.User, *errors.RestErr) {
 }
 
 // UpdateUser is responsible for updating the users records
-func (s *usersService) UpdateUser(isPartialUpdate bool, user users.User) (*users.User, *errors.RestErr) {
+func (s *usersService) UpdateUser(isPartialUpdate bool, user users.User) (*users.User, restErrors.RestErr) {
 	currentUser, err := s.GetUser(user.ID)
 	if err != nil {
 		return nil, err
@@ -101,18 +101,18 @@ func (s *usersService) UpdateUser(isPartialUpdate bool, user users.User) (*users
 }
 
 // DeleteUser is responsible for deleting the user
-func (s *usersService) DeleteUser(userID int64) *errors.RestErr {
+func (s *usersService) DeleteUser(userID int64) restErrors.RestErr {
 	user := &users.User{ID: userID}
 	return user.Delete()
 }
 
 // Search is responsible for finding users by its characteristics
-func (s *usersService) SearchUser(status string) (users.Users, *errors.RestErr) {
+func (s *usersService) SearchUser(status string) (users.Users, restErrors.RestErr) {
 	dao := &users.User{}
 	return dao.FindByStatus(status)
 }
 
-func (s *usersService) LoginUser(request *users.LoginRequest) (*users.User, *errors.RestErr) {
+func (s *usersService) LoginUser(request *users.LoginRequest) (*users.User, restErrors.RestErr) {
 	dao := &users.User{
 		Email:    request.Email,
 		Password: cryptoUtils.GetSha256(request.Password),

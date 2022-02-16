@@ -4,7 +4,7 @@ package users
 import (
 	"encoding/json"
 
-	"github.com/esequielvirtuoso/book_store_users-api/utils/logger"
+	"github.com/esequielvirtuoso/go_utils_lib/logger"
 )
 
 // PublicUser struct define the characteristics of a user that we can return to public HTTP requests
