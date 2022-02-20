@@ -6,7 +6,10 @@ import (
 	"log"
 
 	env "github.com/esequielvirtuoso/go_utils_lib/envs"
+	"github.com/esequielvirtuoso/go_utils_lib/logger"
+
 	// mysql import
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -32,5 +35,6 @@ func init() {
 	if err = Client.Ping(); err != nil {
 		panic(err)
 	}
+	mysql.SetLogger(logger.GetLogger())
 	log.Println("database successfully configured")
 }
