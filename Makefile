@@ -31,9 +31,6 @@ set-env:
 check-used-ports:
 	sudo netstat -tulpn | grep LISTEN
 
-print_var:
-	echo $(DATE)
-
 git-config:
 	git config --replace-all core.hooksPath .githooks
 
@@ -41,6 +38,8 @@ check-env-%:
 	@ if [ "${${*}}" = ""  ]; then \
 		echo "Variable '$*' not set"; \
 		exit 1; \
+	else \
+		echo "${${*}}"; \
 	fi
 
 version: ##@other Check version.
