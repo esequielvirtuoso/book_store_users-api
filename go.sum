@@ -3,10 +3,9 @@ github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZx
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220216213400-5737386e944f h1:uxMnCayz0PF02/INpdXJPP4rG8tah22+VJo2vFxsQZc=
 github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220216213400-5737386e944f/go.mod h1:JhEoAa/tF+GtNCyO3iEGNSk7N7N1Rra1mleiFCfl8hI=
-github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220220204043-ea9064686c5e h1:SEt7ur0bMGflN0kmJ0aZ1gU3Vh6zcuL+dkRHx5Tl9MI=
-github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220220204043-ea9064686c5e/go.mod h1:JhEoAa/tF+GtNCyO3iEGNSk7N7N1Rra1mleiFCfl8hI=
+github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220223213559-357f4db90552 h1:ntRwcrZj12DvB/44HBHWEtcJFTSbYX97nrGcJxhJbCE=
+github.com/esequielvirtuoso/go_utils_lib v0.0.0-20220223213559-357f4db90552/go.mod h1:JhEoAa/tF+GtNCyO3iEGNSk7N7N1Rra1mleiFCfl8hI=
 github.com/esequielvirtuoso/oauth_go_lib v0.0.0-20220216224831-975a1e1c550a h1:jJocu2vIIqimQwTMkkWI6P43drUdpb98PduSDgpQlN0=
 github.com/esequielvirtuoso/oauth_go_lib v0.0.0-20220216224831-975a1e1c550a/go.mod h1:Ve4uO6ltVm2Nqkw59rbAoTE3Y2OTwbJ85i/V74gF6Z8=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
